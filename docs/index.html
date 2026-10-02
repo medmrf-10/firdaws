@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>فردوس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #1a6b4a;
+  --accent-soft: rgba(26, 107, 74, 0.12);
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --text: #1c1a17;
+  --muted: #6b655c;
+  --border: #e3ded4;
+  --shadow: 0 1px 3px rgba(28, 26, 23, 0.07), 0 4px 14px rgba(28, 26, 23, 0.05);
+  --chip-live-bg: var(--accent-soft);
+  --chip-live-text: var(--accent);
+  --chip-building-bg: rgba(158, 108, 32, 0.13);
+  --chip-building-text: #8a5f1e;
+  --chip-soon-bg: rgba(107, 101, 92, 0.12);
+  --chip-soon-text: #6b655c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #4fbf8f;
+    --accent-soft: rgba(79, 191, 143, 0.16);
+    --bg: #141311;
+    --surface: #1e1c19;
+    --text: #eae6de;
+    --muted: #9a938a;
+    --border: #33302a;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.3);
+    --chip-live-bg: var(--accent-soft);
+    --chip-live-text: var(--accent);
+    --chip-building-bg: rgba(216, 164, 92, 0.16);
+    --chip-building-text: #d8a45c;
+    --chip-soon-bg: rgba(154, 147, 138, 0.15);
+    --chip-soon-text: #9a938a;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', Georgia, serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 56px 20px 48px;
+}
+header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.3;
+}
+header p {
+  font-size: 1.05rem;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.cards {
+  display: grid;
+  gap: 16px;
+}
+.card {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  min-height: 64px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+a.card:active { transform: scale(0.985); }
+@media (hover: hover) {
+  a.card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(28, 26, 23, 0.09), 0 8px 22px rgba(28, 26, 23, 0.08);
+  }
+}
+.card h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.card .line {
+  font-size: 0.98rem;
+  line-height: 1.85;
+  color: var(--muted);
+}
+.chip {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+.chip.live { background: var(--chip-live-bg); color: var(--chip-live-text); }
+.chip.building { background: var(--chip-building-bg); color: var(--chip-building-text); }
+.chip.soon { background: var(--chip-soon-bg); color: var(--chip-soon-text); }
+.card.disabled {
+  opacity: 0.62;
+}
+</style>
+</head>
+<body>
+<main class="page">
+<header>
+  <h1>فردوس</h1>
+  <p>بوابة الخدمات الشرعية</p>
+</header>
+<section class="cards">
+  <a class="card" href="https://medmrf-10.github.io/manzuma/tafsir/mufassir/">
+    <h2>التفسير</h2>
+    <p class="line">اختر آية، واحصل على تفسيرها من أي كتاب تفسير متوفر.</p>
+    <span class="chip live">المتوفر الآن: ٩ تفاسير</span>
+  </a>
+  <a class="card" href="https://medmrf-10.github.io/manzuma/hadith/kul/">
+    <h2>الحديث</h2>
+    <p class="line">اختر حديثاً، واعرف مواضع وروده، واحصل على شرحه من أي شرح متوفر.</p>
+    <span class="chip live">المتوفر الآن: الأحاديث الكلية مع فتح الباري</span>
+  </a>
+  <a class="card" href="https://medmrf-10.github.io/manzuma/ulum/">
+    <h2>العلوم الشرعية</h2>
+    <p class="line">اختر موضوعاً دقيقاً (كتاب ← باب ← فرع)، واحصل على نصه من أي كتاب متوفر، أو شرحه، أو حاشيته — بلا خلط بما قبله وما بعده.</p>
+    <span class="chip building">قيد البناء</span>
+  </a>
+  <div class="card disabled">
+    <h2>الدروس</h2>
+    <p class="line">دروس مسجدية من السلاسل المرئية والكتب.</p>
+    <span class="chip soon">قريباً</span>
+  </div>
+  <div class="card disabled">
+    <h2>الكامل</h2>
+    <p class="line">خبير شرعي يعلّم ويتابع ويصحّح.</p>
+    <span class="chip soon">قريباً</span>
+  </div>
+</section>
+</main>
+</body>
+</html>
