@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>التفسير — فردوس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #1a6b4a;
+  --accent-soft: rgba(26, 107, 74, 0.12);
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --text: #1c1a17;
+  --muted: #6b655c;
+  --border: #e3ded4;
+  --shadow: 0 1px 3px rgba(28, 26, 23, 0.07), 0 4px 14px rgba(28, 26, 23, 0.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #4fbf8f;
+    --accent-soft: rgba(79, 191, 143, 0.16);
+    --bg: #141311;
+    --surface: #1e1c19;
+    --text: #eae6de;
+    --muted: #9a938a;
+    --border: #33302a;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.3);
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', Georgia, serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 20px;
+}
+.top a.brand {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+.selectors {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+@media (min-width: 560px) {
+  .selectors { grid-template-columns: 1.4fr 0.8fr 1.4fr; }
+}
+.selectors label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+select {
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-height: 48px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+                    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(0% + 18px) 50%, calc(0% + 13px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-inline-start: 30px;
+}
+.headline {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.headline b { color: var(--text); font-weight: 600; }
+.scope {
+  font-size: 0.82rem;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.tafsir {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  font-size: 1.08rem;
+  line-height: 2.15;
+}
+.tafsir p { margin-bottom: 0.9em; }
+.tafsir p:last-child { margin-bottom: 0; }
+.tafsir .qpc-hafs {
+  font-family: 'Amiri Quran', 'Noto Naskh Arabic', serif;
+  color: var(--accent);
+}
+.empty {
+  color: var(--muted);
+  font-size: 1rem;
+  padding: 28px 22px;
+  text-align: center;
+}
+.src {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  opacity: 0.8;
+  margin-top: 32px;
+}
+</style>
+</head>
+<body>
+<main class="page">
+<div class="top">
+  <a class="brand" href="../">فردوس</a>
+</div>
+<div class="selectors">
+  <div>
+    <label for="selSurah">السورة</label>
+    <select id="selSurah"></select>
+  </div>
+  <div>
+    <label for="selAyah">الآية</label>
+    <select id="selAyah"></select>
+  </div>
+  <div>
+    <label for="selBook">التفسير</label>
+    <select id="selBook"></select>
+  </div>
+</div>
+<div class="headline" id="headline"></div>
+<div class="scope" id="scope" hidden></div>
+<div class="tafsir" id="tafsir"></div>
+<div class="src">المصدر: مكتبة QUL</div>
+</main>
+<script>
+const AD = "٠١٢٣٤٥٦٧٨٩";
+const ad = n => String(n).replace(/\d/g, d => AD[d]);
+
+let surahs = [];
+let books = [];
+const cache = new Map();   // "bookId:surah" -> decoded object
+
+const selSurah = document.getElementById('selSurah');
+const selAyah = document.getElementById('selAyah');
+const selBook = document.getElementById('selBook');
+const headline = document.getElementById('headline');
+const scopeEl = document.getElementById('scope');
+const tafsirEl = document.getElementById('tafsir');
+
+const ALLOWED = new Set(['DIV','P','SPAN','B','STRONG','I','EM','BR','SUP','SUB',
+                         'UL','OL','LI','H1','H2','H3','H4','H5','H6']);
+const DROP = new Set(['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','LINK','META',
+                      'TEMPLATE','NOSCRIPT','SVG','MATH','VIDEO','AUDIO','FORM',
+                      'INPUT','BUTTON','TEXTAREA','SELECT','OPTION','FRAME',
+                      'FRAMESET','BASE','TITLE','HEAD','HTML','BODY','IMG',
+                      'TABLE','THEAD','TBODY','TR','TD','TH','CANVAS','A','AREA']);
+
+function cleanNode(node) {
+  if (node.nodeType === 3) return document.createTextNode(node.textContent);
+  if (node.nodeType !== 1) return null;
+  if (DROP.has(node.tagName)) return null;
+  const kids = [];
+  for (const c of node.childNodes) {
+    const cc = cleanNode(c);
+    if (cc) kids.push(cc);
+  }
+  if (!ALLOWED.has(node.tagName)) {
+    const frag = document.createDocumentFragment();
+    for (const k of kids) frag.appendChild(k);
+    return frag;
+  }
+  const el = document.createElement(node.tagName.toLowerCase());
+  if (node.hasAttribute('class')) el.setAttribute('class', node.getAttribute('class'));
+  if (node.hasAttribute('lang')) el.setAttribute('lang', node.getAttribute('lang'));
+  for (const k of kids) el.appendChild(k);
+  return el;
+}
+
+function sanitize(html) {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = html;
+  const out = document.createDocumentFragment();
+  for (const n of tpl.content.childNodes) {
+    const c = cleanNode(n);
+    if (c) out.appendChild(c);
+  }
+  return out;
+}
+
+async function loadSurah(bookId, surah) {
+  const ck = bookId + ':' + surah;
+  if (cache.has(ck)) return cache.get(ck);
+  const p = (async () => {
+    const res = await fetch('data/' + bookId + '/' + surah + '.json.gz');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const ds = res.body.pipeThrough(new DecompressionStream('gzip'));
+    const buf = await new Response(ds).arrayBuffer();
+    return JSON.parse(new TextDecoder('utf-8').decode(buf));
+  })();
+  cache.set(ck, p);
+  try { return await p; } catch (e) { cache.delete(ck); throw e; }
+}
+
+function parseHash() {
+  const m = /^#(\d+):(\d+)\/(\d+)$/.exec(location.hash);
+  if (!m) return null;
+  const s = +m[1], a = +m[2], b = +m[3];
+  const sRec = surahs.find(x => x.n === s);
+  if (!sRec || a < 1 || a > sRec.ayahs) return null;
+  if (!books.find(x => x.id === b)) return null;
+  return { s, a, b };
+}
+
+function current() {
+  return { s: +selSurah.value, a: +selAyah.value, b: +selBook.value };
+}
+
+function fillAyahs(surah, keep) {
+  const sRec = surahs.find(x => x.n === surah);
+  selAyah.innerHTML = '';
+  for (let i = 1; i <= sRec.ayahs; i++) {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = ad(i);
+    selAyah.appendChild(o);
+  }
+  if (keep >= 1 && keep <= sRec.ayahs) selAyah.value = keep;
+}
+
+function setHash() {
+  const { s, a, b } = current();
+  const h = '#' + s + ':' + a + '/' + b;
+  if (location.hash !== h) history.replaceState(null, '', h);
+  try { localStorage.setItem('firdaws:tafsir', JSON.stringify({ s, a, b })); }
+  catch (e) {}
+}
+
+let renderSeq = 0;
+async function render() {
+  const seq = ++renderSeq;
+  const { s, a, b } = current();
+  const sRec = surahs.find(x => x.n === s);
+  const bRec = books.find(x => x.id === b);
+  headline.innerHTML = '';
+  const hb = document.createElement('b');
+  hb.textContent = bRec.name;
+  headline.appendChild(hb);
+  headline.appendChild(document.createTextNode(' — ' + sRec.name + ' ' + ad(a)));
+  scopeEl.hidden = true;
+  tafsirEl.textContent = '…';
+  tafsirEl.classList.remove('empty');
+
+  let data;
+  try {
+    data = await loadSurah(b, s);
+  } catch (e) {
+    if (seq !== renderSeq) return;
+    tafsirEl.textContent = 'تعذر التحميل';
+    tafsirEl.classList.add('empty');
+    return;
+  }
+  if (seq !== renderSeq) return;
+
+  let key = s + ':' + a;
+  let v = data[key];
+  let hops = 0;
+  while (typeof v === 'string' && hops++ < 5) {
+    key = v;
+    v = data[key];
+  }
+  if (!v || typeof v !== 'object' || typeof v.text !== 'string') {
+    tafsirEl.textContent = 'لا يوجد تفسير لهذه الآية في هذا الكتاب';
+    tafsirEl.classList.add('empty');
+    return;
+  }
+  const keys = v.ayah_keys;
+  if (Array.isArray(keys) && keys.length > 1) {
+    const first = keys[0].split(':')[1];
+    const last = keys[keys.length - 1].split(':')[1];
+    scopeEl.textContent = 'يشمل الآيات ' + ad(first) + '–' + ad(last);
+    scopeEl.hidden = false;
+  }
+  tafsirEl.innerHTML = '';
+  tafsirEl.appendChild(sanitize(v.text));
+}
+
+function applyState(st) {
+  selSurah.value = st.s;
+  fillAyahs(st.s, st.a);
+  selBook.value = st.b;
+  render();
+}
+
+async function init() {
+  const [surahsRes, booksRes] = await Promise.all([
+    fetch('data/surahs.json').then(r => r.json()),
+    fetch('data/books.json').then(r => r.json()),
+  ]);
+  surahs = surahsRes;
+  books = booksRes.books;
+
+  for (const s of surahs) {
+    const o = document.createElement('option');
+    o.value = s.n;
+    o.textContent = ad(s.n) + '. ' + s.name;
+    selSurah.appendChild(o);
+  }
+  for (const b of books) {
+    const o = document.createElement('option');
+    o.value = b.id;
+    o.textContent = b.name;
+    selBook.appendChild(o);
+  }
+
+  if (!('DecompressionStream' in window)) {
+    tafsirEl.textContent = 'المتصفح لا يدعم فك الضغط';
+    tafsirEl.classList.add('empty');
+    return;
+  }
+
+  let st = parseHash();
+  if (!st) {
+    try { st = JSON.parse(localStorage.getItem('firdaws:tafsir')); } catch (e) {}
+    if (st && !(surahs.find(x => x.n === st.s) && books.find(x => x.id === st.b) &&
+                st.a >= 1 && st.a <= surahs.find(x => x.n === st.s).ayahs)) st = null;
+  }
+  if (!st) st = { s: 1, a: 1, b: 22 };
+  applyState(st);
+
+  selSurah.addEventListener('change', () => { fillAyahs(+selSurah.value, 1); setHash(); render(); });
+  selAyah.addEventListener('change', () => { setHash(); render(); });
+  selBook.addEventListener('change', () => { setHash(); render(); });
+  window.addEventListener('hashchange', () => {
+    const st = parseHash();
+    if (st) applyState(st);
+  });
+}
+
+init().catch(e => {
+  tafsirEl.textContent = 'تعذر التحميل';
+  tafsirEl.classList.add('empty');
+});
+</script>
+</body>
+</html>
